@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-# 질문 및 답변 데이터
+# 20개의 질문 및 답변 데이터
 questions = [
     {
         "question": "럭키비키의 뜻은?",
@@ -205,7 +205,30 @@ questions = [
     }
 ]
 
-def get_result_message(score, total):
+answer_list = [
+    "**럭키비키**: 무엇인가를 매우 잘했을 때 사용하는 표현.",
+    "**민지적 사고**: MZ세대가 생각하는 특유의 사고방식을 의미.",
+    "**킵고잉**: 힘들어도 계속 나아가자는 의미.",
+    "**요아소비 빠따정**: 일본 그룹 요아소비와 관련된 밈으로, 특정 상황에서 많이 쓰임.",
+    "**기습숭배**: 예상치 못한 찬양을 의미하는 말.",
+    "**아마개똥**: 에스파의 신곡 '아마겟돈'에서 파생된 말.",
+    "**도미라클**: 도미노 효과처럼 연쇄적으로 좋은 일이 일어나는 현상.",
+    "**핑프**: 핑계 없는 프리패스, 즉 변명할 필요가 없을 때 사용.",
+    "**직관력 만렙**: 직관적으로 상황을 잘 이해할 때 사용하는 말.",
+    "**빙산의 일각**: 겉으로 드러난 것은 극히 일부라는 의미.",
+    "**크루키**: 크루(crew)와 쿠키(cookies)를 합친 말, 단체 활동에서 자주 사용.",
+    "**취미부자**: 취미가 아주 많은 사람을 의미.",
+    "**잡덕**: 여러 취미나 분야에 폭넓은 관심을 가진 사람.",
+    "**퇴사각**: 퇴사를 진지하게 고민하는 상황을 의미.",
+    "**플렉스**: 자신이 가진 것을 자랑할 때 사용하는 말.",
+    "**할말하않**: 할 말은 많지만 하지 않겠다는 의미.",
+    "**잠만보**: 매우 게으른 사람을 가리키는 말.",
+    "**문찐**: 문화를 잘 따라가지 못하는 사람.",
+    "**현타**: 현실 자각 타임, 이상과 현실의 괴리를 느낄 때 사용하는 말.",
+    "**알잘딱깔센**: 알아서 잘 딱 깔끔하고 센스 있게 해주는 사람을 의미."
+]
+
+def get_result_message(score):
     if score <= 5:
         return "혹시 꼰대신가요?"
     elif score <= 10:
@@ -215,40 +238,104 @@ def get_result_message(score, total):
     else:
         return "당신은 초인싸군요!"
 
-def main():
-    st.title("MZ 신조어 테스트")
-    st.write("당신의 MZ 레벨을 알아보세요!")
-
+def initialize_session_state():
     if 'question_index' not in st.session_state:
         st.session_state.question_index = 0
         st.session_state.score = 0
         st.session_state.questions = random.sample(questions, len(questions))
+        st.session_state.shuffled_options = [
+            random.sample(q['options'], len(q['options'])) for q in st.session_state.questions
+        ]
+
+def display_question(question, options):
+    st.markdown(f"### 문제 {st.session_state.question_index + 1}")
+    st.markdown(f"<div class='question'>{question['question']}</div>", unsafe_allow_html=True)
+    return st.radio("정답을 선택하세요:", options, key=f"question_{st.session_state.question_index}")
+
+def check_answer(selected_option, correct_answer):
+    if selected_option == correct_answer:
+        st.session_state.score += 1
+
+def display_result():
+    st.markdown("## 테스트 완료!")
+    st.markdown(f"### 맞힌 문제: {st.session_state.score} / {len(questions)}")
+    result_message = get_result_message(st.session_state.score)
+    st.markdown(f"<div class='result'>{result_message}</div>", unsafe_allow_html=True)
+    
+    st.markdown("## MZ 신조어 정답 리스트")
+    st.markdown("<div class='answer-list-intro'>아래 리스트를 통해 MZ 신조어를 학습해보세요!</div>", unsafe_allow_html=True)
+    for answer in answer_list:
+        st.markdown(f"<div class='answer-item'>{answer}</div>", unsafe_allow_html=True)
+
+def main():
+    st.set_page_config(page_title="MZ 신조어 테스트", page_icon="🎓", layout="centered")
+    
+    # CSS 스타일 추가
+    st.markdown("""
+    <style>
+    .stApp {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .title {
+        font-size: 2.5rem !important;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    .subtitle {
+        font-size: 1.5rem !important;
+        margin-bottom: 2rem;
+    }
+    .question {
+        font-size: 1.8rem !important;
+        margin-bottom: 1.5rem;
+    }
+    .stRadio > label {
+        font-size: 1.2rem !important;
+        padding: 10px 0;
+    }
+    .stButton > button {
+        font-size: 1.2rem;
+        padding: 0.5rem 2rem;
+    }
+    .result {
+        font-size: 2rem !important;
+        font-weight: bold;
+        color: #4CAF50;
+        margin: 1rem 0;
+    }
+    .answer-list-intro {
+        font-size: 1.3rem !important;
+        margin-bottom: 1rem;
+    }
+    .answer-item {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<h1 class='title'>🎓 MZ 신조어 테스트</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>당신의 MZ 레벨을 알아보세요!</div>", unsafe_allow_html=True)
+
+    initialize_session_state()
 
     if st.session_state.question_index < len(st.session_state.questions):
         question = st.session_state.questions[st.session_state.question_index]
-        st.write(f"문제 {st.session_state.question_index + 1}")
-        st.write(question['question'])
+        options = st.session_state.shuffled_options[st.session_state.question_index]
 
-        options = random.sample(question['options'], len(question['options']))
-        answer = st.radio("정답을 선택하세요:", options, key=f"question_{st.session_state.question_index}")
+        selected_option = display_question(question, options)
 
-        if st.button("다음"):
-            if answer == question['answer']:
-                st.session_state.score += 1
+        if st.button("다음", key="next_button"):
+            check_answer(selected_option, question['answer'])
             st.session_state.question_index += 1
-            st.experimental_rerun()
-
+            st.rerun()
     else:
-        st.write("테스트 완료!")
-        st.write(f"맞힌 문제: {st.session_state.score} / {len(questions)}")
-        result_message = get_result_message(st.session_state.score, len(questions))
-        st.write(result_message)
+        display_result()
 
-        if st.button("다시 시작"):
-            st.session_state.question_index = 0
-            st.session_state.score = 0
-            st.session_state.questions = random.sample(questions, len(questions))
-            st.experimental_rerun()
+        if st.button("다시 시작", key="restart_button"):
+            st.session_state.clear()
+            st.rerun()
 
 if __name__ == "__main__":
     main()
